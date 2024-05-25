@@ -21,7 +21,9 @@ export class AppController {
     const csvPath = this.configService.getOrThrow<string>('INPUT_CSV_PATH');
     const csv = readFileSync(csvPath, 'utf-8');
     const allUsers = this.appService.convertToJson(csv);
+    const count = await this.appService.insertRowsIntoDatabase(allUsers);
+    await this.appService.printAgeDistribution();
 
-    return { count: await this.appService.insertRowsIntoDatabase(allUsers) };
+    return { count };
   }
 }

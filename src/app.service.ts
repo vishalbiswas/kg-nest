@@ -124,4 +124,28 @@ export class AppService {
 
     return count;
   }
+
+  async printAgeDistribution() {
+    const results: Record<string, number> = (
+      await this.db
+        .createQueryBuilder()
+        .addSelect(`SUM(CASE WHEN age < 20 THEN 1 ELSE 0 end) "< 20"`)
+        .addSelect(
+          `SUM(CASE WHEN age >= 20 AND age < 40 THEN 1 ELSE 0 end) "20 to 40"`,
+        )
+        .addSelect(
+          `SUM(CASE WHEN age >= 40 AND age < 60 THEN 1 ELSE 0 end) "40 to 60"`,
+        )
+        .addSelect(`SUM(CASE WHEN age >= 60 THEN 1 ELSE 0 end) ">= 60"`)
+        .from(User, 'user')
+        .execute()
+    )[0];
+    const total = Object.values(results).reduce((p, c) => p + Number(c), 0);
+    console.table(
+      Object.entries(results).map(([k, v]) => ({
+        'Age-Group': k,
+        '% Distribution': total > 0 ? Math.round((Number(v) / total) * 100) : 0,
+      })),
+    );
+  }
 }
